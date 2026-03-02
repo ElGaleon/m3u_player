@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:m3u_player/model/channel.dart';
+import 'package:m3u_player/model/media_content.dart';
 
-class SelectedChannelNotifier extends StateNotifier<Channel?> {
+class SelectedChannelNotifier extends StateNotifier<MediaContent?> {
   SelectedChannelNotifier(super.state);
 
-  Future<void> update(Channel channel) async {
+  Future<void> update(MediaContent channel) async {
     state = channel;
   }
 
@@ -13,7 +13,7 @@ class SelectedChannelNotifier extends StateNotifier<Channel?> {
   }
 }
 
-final selectedChannelProvider =
-    StateNotifierProvider<SelectedChannelNotifier, Channel?>(
+final selectedMediaContentProvider =
+    StateNotifierProvider<SelectedChannelNotifier, MediaContent?>(
       (ref) => SelectedChannelNotifier(null),
     );

@@ -1,14 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:m3u_player/providers/selected_channel_provider.dart';
+import 'package:m3u_player/model/media_content.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-import '../model/channel.dart';
-
 class VideoPlayerPage extends StatefulWidget {
-  final Channel channel;
+  final MediaContent channel;
 
   const VideoPlayerPage({super.key, required this.channel});
 
@@ -43,7 +40,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.channel.name),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black87,
       ),
       body: Center(
         child: Video(

@@ -1,8 +1,8 @@
-import 'package:m3u_player/model/channel.dart';
+import 'package:m3u_player/model/media_content.dart';
 
 class M3uFile {
   final String? path;
-  final List<Channel> channels;
+  final List<MediaContent> channels;
   final List<String> groups;
   final Set<String>? selectedGroups;
 
@@ -15,7 +15,7 @@ class M3uFile {
 
   M3uFile copyWith({
     String? path,
-    List<Channel>? channels,
+    List<MediaContent>? channels,
     List<String>? groups,
     Set<String>? selectedGroups,
   }) => M3uFile(

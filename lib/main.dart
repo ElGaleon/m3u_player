@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3u_player/providers/path_notifier.dart';
-import 'package:m3u_player/views/home_page.dart';
-import 'package:m3u_player/views/video_player_page.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:m3u_player/routing/routes.dart';
+import 'package:media_kit/media_kit.dart' hide Media;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'model/channel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,22 +23,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: Theme.of(context),
-      initialRoute: '/',
-      onGenerateRoute: (settings) {
-        if (settings.name == '/') {
-          return MaterialPageRoute(
-            builder: (_) => const MyHomePage(title: 'M3U Editor'),
-          );
-        }
-        if (settings.name == '/player') {
-          final args = settings.arguments as Channel;
-          return MaterialPageRoute(
-            builder: (_) => VideoPlayerPage(channel: args),
-          );
-        }
-      },
+    return ShadApp.router(
+      theme: ShadThemeData(brightness: Brightness.dark),
+      routerConfig: router,
+      darkTheme: ShadThemeData(
+        brightness: Brightness.dark,
+        colorScheme: const ShadSlateColorScheme.dark(),
+      ),
     );
   }
 }
