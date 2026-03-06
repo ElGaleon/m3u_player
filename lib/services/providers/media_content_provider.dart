@@ -118,16 +118,6 @@ final organizedSeriesProvider = FutureProvider.autoDispose<Map<String, Series>>(
   },
 );
 
-final paginatedMediaProvider = StateProvider.autoDispose<MediaContentList>((
-  ref,
-) {
-  const int itemsPerPage = 40;
-  final filteredMedia = ref.watch(filteredMediaProvider).value?.content ?? [];
-  if (filteredMedia.isEmpty) return MediaContentList(content: []);
-  final contentList = filteredMedia.take(itemsPerPage).toList();
-  return MediaContentList(content: contentList);
-});
-
 final currentSeasonProvider = StateProvider.autoDispose<int>((ref) => 1);
 
 final selectedSeriesProvider = StateProvider<Series?>((ref) => null);

@@ -43,13 +43,11 @@ class Series {
     for (var item in allContent) {
       if (!item.isSeries) continue;
 
-      // 1. Estrai info serie
       final match = seriesRegex.firstMatch(item.name);
       final cleanTitle = item.name.split('S0')[0].trim();
 
       int seasonNumber = match != null ? int.parse(match.group(1)!) : 1;
 
-      // 2. Crea o aggiorna il contenitore
       if (!seriesMap.containsKey(cleanTitle)) {
         seriesMap[cleanTitle] = Series(
           title: cleanTitle,
@@ -59,7 +57,6 @@ class Series {
         );
       }
 
-      // 3. Aggiungi l'episodio alla stagione corretta
       seriesMap[cleanTitle]!.seasons.putIfAbsent(seasonNumber, () => []);
       seriesMap[cleanTitle]!.seasons[seasonNumber]!.add(item);
     }

@@ -41,7 +41,7 @@ class BaseClient {
       ),
     );
     response.check();
-    return response.data!;
+    return response;
   }
 }
 

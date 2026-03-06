@@ -1,7 +1,8 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:riverpod/riverpod.dart';
 
-class FileFilterNotifier extends StateNotifier<String?> {
-  FileFilterNotifier(super.state);
+class FileFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
 
   Future<void> update(String filter) async {
     state = filter;
@@ -12,6 +13,6 @@ class FileFilterNotifier extends StateNotifier<String?> {
   }
 }
 
-final fileFilterProvider = StateNotifierProvider<FileFilterNotifier, String?>(
-  (ref) => FileFilterNotifier(null),
+final fileFilterProvider = NotifierProvider<FileFilterNotifier, String?>(
+  () => FileFilterNotifier(),
 );

@@ -83,14 +83,14 @@ class MovieGrid extends ConsumerWidget {
               child: AnimatedScale(
                 scale: (isHovered) ? 1.05 : 1,
                 duration: const Duration(milliseconds: 200),
-                child: InkWell(
+                child: MovieCard(
+                  movie: movie,
                   onTap: () {
                     ref
                         .read(selectedMediaContentProvider.notifier)
                         .update(movie);
                     context.push('/player', extra: movie);
                   },
-                  child: MovieCard(movie: movie),
                 ),
               ),
             );

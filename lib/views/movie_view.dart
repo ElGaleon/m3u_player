@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:m3u_player/components/movie_card.dart';
 import 'package:m3u_player/components/sidebar.dart';
 import 'package:m3u_player/model/media_content.dart';
+import 'package:m3u_player/services/providers/movie_details_provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../services/providers/media_content_provider.dart';
+import '../services/providers/paginated_media_provider.dart';
 import '../services/providers/selected_media_content_provider.dart';
 
 class MovieView extends ConsumerWidget {
@@ -51,15 +53,45 @@ class MovieView extends ConsumerWidget {
   }
 }
 
-class MovieGrid extends ConsumerWidget {
+class MovieGrid extends ConsumerStatefulWidget {
   final MediaContentList list;
 
   const MovieGrid({super.key, required this.list});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MovieGrid> createState() => _MovieGridState();
+}
+
+class _MovieGridState extends ConsumerState<MovieGrid> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 400) {
+      ref.read(paginatedMediaProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isHovered = false;
+    final paginatedList = ref.watch(paginatedMediaProvider);
     return GridView.builder(
-      cacheExtent: 500,
+      controller: _scrollController,
+      cacheExtent: 1000,
       padding: EdgeInsetsGeometry.all(24),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 240,
@@ -67,30 +99,41 @@ class MovieGrid extends ConsumerWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 2 / 3,
       ),
-      itemCount: list.content.length,
+      itemCount: paginatedList.content.length,
       itemBuilder: (context, index) {
-        final movie = list.content[index];
-        bool isHovered = false;
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return MouseRegion(
-              onEnter: (_) => setState(() => isHovered = true),
-              onExit: (_) => setState(() => isHovered = false),
-              child: AnimatedScale(
-                scale: (isHovered) ? 1.05 : 1,
-                duration: const Duration(milliseconds: 200),
-                child: InkWell(
+        final movie = widget.list.content[index];
+        final imdbMetadataAsync = ref.watch(
+          imdbMetadataProvider(movie.cleanTitle),
+        );
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          child: AnimatedScale(
+            scale: (isHovered) ? 1.05 : 1,
+            duration: const Duration(milliseconds: 200),
+            child: imdbMetadataAsync.when(
+              data: (data) {
+                return MovieCard(
+                  movie: movie,
                   onTap: () {
                     ref
                         .read(selectedMediaContentProvider.notifier)
                         .update(movie);
                     context.push('/player', extra: movie);
                   },
-                  child: MovieCard(movie: movie),
-                ),
-              ),
-            );
-          },
+                );
+              },
+              error: (error, stackTrace) {
+                return SizedBox.shrink();
+              },
+              loading: () {
+                return Skeletonizer(
+                  enabled: true,
+                  child: MovieCard(movie: movie, onTap: () {}),
+                );
+              },
+            ),
+          ),
         );
       },
     );
