@@ -13,7 +13,7 @@ final router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const MyHomePage(title: 'M3U Player'),
+      builder: (context, state) => const HomePage(title: 'M3U Player'),
     ),
     GoRoute(
       path: '/player',

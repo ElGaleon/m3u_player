@@ -1,87 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m3u_player/extensions/build_context_extensions.dart';
+import 'package:m3u_player/model/group_category.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-import '../model/group_category.dart';
-import '../providers/file_controller.dart';
-import '../providers/file_filter_provider.dart';
+import '../services/providers/file_filter_provider.dart';
+import '../services/providers/media_content_provider.dart';
 
 class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncGroups = ref.watch(asyncGroupsProvider);
-    final currentFilter = ref.watch(fileFilterProvider);
-    final theme = ShadTheme.of(context);
-
-    return asyncGroups.when(
-      data: (rawList) {
-        final Map<GroupCategory, List<String>> organized = {};
-
-        for (var name in rawList) {
-          final cat = GroupClassifier.classify(name);
-          organized.putIfAbsent(cat, () => []).add(name);
-        }
-
-        final displayOrder = [
-          GroupCategory.scopri,
-          GroupCategory.genere,
-          GroupCategory.piattaforma,
-          GroupCategory.annata,
-          GroupCategory.attore,
-          GroupCategory.regista,
-          GroupCategory.adult,
-        ];
-
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-          itemCount: displayOrder.length,
-          itemBuilder: (context, index) {
-            final category = displayOrder[index];
-            final items = organized[category] ?? [];
-
-            if (items.isEmpty) return const SizedBox.shrink();
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(category, theme),
-                ...items.map(
-                  (item) => _SidebarItem(
-                    label: item,
-                    isSelected: currentFilter == item,
-                    onTap: () {
-                      final notifier = ref.read(fileFilterProvider.notifier);
-                      currentFilter == item
-                          ? notifier.clearFilter()
-                          : notifier.update(item);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16), // Spazio tra sezioni
-              ],
-            );
-          },
-        );
+    final asyncGroupCategory = ref.watch(asyncGroupedCategoryProvider);
+    return asyncGroupCategory.when(
+      data: (groupCategoryMap) {
+        return SidebarContent(content: groupCategoryMap);
       },
-      loading: () => const Center(child: ShadProgress()),
+      loading: () => Center(
+        child: Skeletonizer(
+          enabled: true,
+          child: SidebarContent(content: GroupedCategoryMap.fake()),
+        ),
+      ),
       error: (e, _) => const Icon(Icons.error),
     );
   }
+}
 
-  Widget _buildHeader(GroupCategory cat, ShadThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: Text(
-        cat.label,
-        style: theme.textTheme.muted.copyWith(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          color: theme.colorScheme.primary.withValues(alpha: 0.5),
-        ),
-      ),
+class SidebarContent extends ConsumerWidget {
+  final GroupedCategoryMap content;
+  const SidebarContent({super.key, required this.content});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentFilter = ref.watch(fileFilterProvider);
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      itemCount: content.value.keys.length,
+      cacheExtent: 300,
+      itemBuilder: (context, index) {
+        final GroupCategory groupCategory = content.value.keys.elementAt(index);
+        final List<String>? itemsInCategory = content.value[groupCategory];
+        if (itemsInCategory?.isEmpty ?? true) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
+          children: [
+            _SidebarGroupHeader(label: groupCategory.label),
+            ...itemsInCategory!.map(
+              (item) => _SidebarItem(
+                label: item,
+                isSelected: currentFilter == item,
+                onTap: () {
+                  final notifier = ref.read(fileFilterProvider.notifier);
+                  currentFilter == item
+                      ? notifier.clearFilter()
+                      : notifier.update(item);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -120,7 +104,6 @@ class _SidebarItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Indicatore fisso per evitare il layout shift
             Container(
               width: 3,
               height: 16,
@@ -150,6 +133,27 @@ class _SidebarItem extends StatelessWidget {
                 color: theme.colorScheme.primary.withValues(alpha: 0.7),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SidebarGroupHeader extends StatelessWidget {
+  final String label;
+  const _SidebarGroupHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Text(
+        label,
+        style: context.textTheme.muted.copyWith(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+          color: context.colorScheme.primary.withValues(alpha: 0.5),
         ),
       ),
     );

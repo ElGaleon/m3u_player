@@ -1,17 +1,86 @@
 import 'package:flutter/material.dart';
 
-enum GroupCategory {
-  scopri('SCOPRI', Icons.explore),
-  genere('GENERI', Icons.movie_filter_outlined),
-  annata('ANNATE', Icons.calendar_today_rounded),
-  piattaforma('PIATTAFORMA', Icons.live_tv_outlined),
-  attore('ATTORI', Icons.person_outline_rounded),
-  regista('REGISTI', Icons.movie_creation_outlined),
+class GroupedCategoryMap {
+  final Map<GroupCategory, List<String>> value;
+
+  const GroupedCategoryMap({this.value = const {}});
+
+  factory GroupedCategoryMap.fake() => GroupedCategoryMap(
+    value: {
+      GroupCategory.discover: [
+        'Film del momento',
+        'Aggiunti di recente',
+        'I più premiati dell\'anno',
+      ],
+      GroupCategory.genres: [
+        'Azione e Avventura',
+        'Commedia brillante',
+        'Thriller psicologico',
+        'Fantascienza',
+        'Documentari storici',
+        'Animazione per famiglia',
+      ],
+      GroupCategory.years: [
+        '2025',
+        '2024',
+        '2023',
+        'Anni 2010',
+        'Anni 2000',
+        'Anni 90',
+        'Anni 80',
+      ],
+      GroupCategory.platform: [
+        'Netflix Originals',
+        'Amazon Prime Video',
+        'Disney Plus',
+        'Paramount+',
+        'Apple TV+',
+      ],
+      GroupCategory.actor: [
+        'Leonardo DiCaprio',
+        'Scarlett Johansson',
+        'Tom Hanks',
+        'Denzel Washington',
+        'Meryl Streep',
+      ],
+      GroupCategory.director: [
+        'Christopher Nolan',
+        'Steven Spielberg',
+        'Quentin Tarantino',
+        'Martin Scorsese',
+      ],
+      GroupCategory.adult: ['Contenuti 18+', 'Thriller VM18'],
+    },
+  );
+}
+
+enum GroupCategory implements Comparable<GroupCategory> {
+  discover('SCOPRI', Icons.explore),
+  genres('GENERI', Icons.movie_filter_outlined),
+  years('ANNATE', Icons.calendar_today_rounded),
+  platform('PIATTAFORMA', Icons.live_tv_outlined),
+  actor('ATTORI', Icons.person_outline_rounded),
+  director('REGISTI', Icons.movie_creation_outlined),
   adult('ADULTI', Icons.eighteen_up_rating);
 
   final String label;
   final IconData icon;
+
   const GroupCategory(this.label, this.icon);
+
+  List<GroupCategory> get displayOrder => [
+    GroupCategory.discover,
+    GroupCategory.genres,
+    GroupCategory.platform,
+    GroupCategory.years,
+    GroupCategory.actor,
+    GroupCategory.director,
+    GroupCategory.adult,
+  ];
+
+  @override
+  int compareTo(GroupCategory other) =>
+      displayOrder.indexOf(this) - displayOrder.indexOf(other);
 }
 
 class GroupClassifier {
@@ -24,16 +93,16 @@ class GroupClassifier {
 
     const platformKeywords = {'disney+', 'netflix'};
     if (platformKeywords.any((key) => lower.contains(key))) {
-      return GroupCategory.piattaforma;
+      return GroupCategory.platform;
     }
 
     if (lower.contains('anno') ||
         lower.contains('anni') ||
         RegExp(r'^\d{4}').hasMatch(lower)) {
-      return GroupCategory.annata;
+      return GroupCategory.years;
     }
 
-    const generi = {
+    const genres = {
       'avventura',
       'commedia',
       'crime',
@@ -58,12 +127,12 @@ class GroupClassifier {
       'horror',
       'azione',
     };
-    if (generi.any((keyword) => lower.contains(keyword))) {
-      return GroupCategory.genere;
+    if (genres.any((keyword) => lower.contains(keyword))) {
+      return GroupCategory.genres;
     }
 
     if (lower.startsWith('regia di')) {
-      return GroupCategory.regista;
+      return GroupCategory.director;
     }
 
     const discoverKeywords = {
@@ -74,10 +143,9 @@ class GroupClassifier {
       'visti ultima',
     };
     if (discoverKeywords.any((key) => lower.contains(key))) {
-      return GroupCategory.scopri;
+      return GroupCategory.discover;
     }
 
-    // 4. Default agli Attori
-    return GroupCategory.attore;
+    return GroupCategory.actor;
   }
 }

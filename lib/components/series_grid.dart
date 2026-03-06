@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:m3u_player/components/series_card.dart';
 import 'package:m3u_player/model/series.dart';
 
-import '../providers/file_controller.dart';
+import '../services/providers/media_content_provider.dart';
 
 class SeriesGrid extends ConsumerWidget {
   final List<Series> seriesList;

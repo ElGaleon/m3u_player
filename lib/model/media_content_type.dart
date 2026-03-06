@@ -1,29 +1,45 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter/material.dart';
 
-enum MediaContentType { live, movie, series, unknown }
+import '../theme/app_colors.dart';
 
-MediaContentType identifyContentType(String url) {
-  if (url.contains('/movie/')) return MediaContentType.movie;
-  if (url.contains('/series/')) return MediaContentType.series;
-  if (url.contains(':80/') || url.endsWith('.ts') || url.endsWith('.m3u8')) {
-    return MediaContentType.live;
+enum MediaContentType {
+  live(
+    label: 'Live Channels',
+    color: AppColors.electricBlue,
+    icon: Icons.live_tv_outlined,
+  ),
+  movie(
+    label: 'Movies',
+    color: AppColors.warmOrange,
+    icon: Icons.movie_creation_outlined,
+  ),
+  series(
+    label: 'Series',
+    color: AppColors.denseGreen,
+    icon: Icons.local_movies_outlined,
+  ),
+  unknown(
+    label: 'Unknown',
+    color: Colors.white70,
+    icon: Icons.question_mark_outlined,
+  );
+
+  final String label;
+  final Color color;
+  final IconData icon;
+
+  const MediaContentType({
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  factory MediaContentType.classify(String url) {
+    if (url.contains('/movie/')) return MediaContentType.movie;
+    if (url.contains('/series/')) return MediaContentType.series;
+    if (url.contains(':80/') || url.endsWith('.ts') || url.endsWith('.m3u8')) {
+      return MediaContentType.live;
+    }
+    return MediaContentType.unknown;
   }
-  return MediaContentType.unknown;
 }
-
-class SelectedMediaTypeNotifier extends StateNotifier<MediaContentType?> {
-  SelectedMediaTypeNotifier(super.state);
-
-  Future<void> update(MediaContentType type) async {
-    state = type;
-  }
-
-  Future<void> clearFilter() async {
-    state = null;
-  }
-}
-
-final selectedMediaTypeProvider =
-    StateNotifierProvider<SelectedMediaTypeNotifier, MediaContentType?>(
-      (ref) => SelectedMediaTypeNotifier(null),
-    );

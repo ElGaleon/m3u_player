@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:m3u_player/components/live_channel_card.dart';
 import 'package:m3u_player/components/sidebar.dart';
-import 'package:m3u_player/providers/selected_channel_provider.dart';
+import 'package:m3u_player/services/providers/selected_media_content_provider.dart';
 
-import '../providers/file_controller.dart';
+import '../services/providers/media_content_provider.dart';
 
 class LiveView extends ConsumerWidget {
   const LiveView({super.key});
@@ -24,7 +24,7 @@ class LiveView extends ConsumerWidget {
           Flexible(
             flex: 3,
             child: asyncChannels.when(
-              data: (data) => data.isEmpty
+              data: (data) => data.content.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -47,9 +47,9 @@ class LiveView extends ConsumerWidget {
                                 mainAxisSpacing: 8,
                                 childAspectRatio: 16 / 9,
                               ),
-                          itemCount: data.length,
+                          itemCount: data.content.length,
                           itemBuilder: (context, index) {
-                            final item = data[index];
+                            final item = data.content[index];
                             return InkWell(
                               onTap: () {
                                 ref

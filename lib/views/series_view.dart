@@ -7,8 +7,8 @@ import 'package:m3u_player/components/sidebar.dart';
 import 'package:m3u_player/model/media_content.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import '../providers/file_controller.dart';
-import '../providers/selected_channel_provider.dart';
+import '../services/providers/media_content_provider.dart';
+import '../services/providers/selected_media_content_provider.dart';
 
 class SeriesView extends ConsumerWidget {
   const SeriesView({super.key});

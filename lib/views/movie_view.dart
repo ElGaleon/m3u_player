@@ -6,8 +6,8 @@ import 'package:m3u_player/components/sidebar.dart';
 import 'package:m3u_player/model/media_content.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import '../providers/file_controller.dart';
-import '../providers/selected_channel_provider.dart';
+import '../services/providers/media_content_provider.dart';
+import '../services/providers/selected_media_content_provider.dart';
 
 class MovieView extends ConsumerWidget {
   const MovieView({super.key});
@@ -28,7 +28,7 @@ class MovieView extends ConsumerWidget {
             flex: 4,
             child: Center(
               child: asyncMovies.when(
-                data: (data) => data.isEmpty
+                data: (data) => data.content.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
@@ -36,11 +36,11 @@ class MovieView extends ConsumerWidget {
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       )
-                    : MovieGrid(contentList: data),
+                    : MovieGrid(list: data),
                 error: (error, stackTrace) => Text(error.toString()),
                 loading: () => Skeletonizer(
                   enabled: true,
-                  child: MovieGrid(contentList: []),
+                  child: MovieGrid(list: MediaContentList.fake()),
                 ),
               ),
             ),
@@ -52,9 +52,9 @@ class MovieView extends ConsumerWidget {
 }
 
 class MovieGrid extends ConsumerWidget {
-  final List<MediaContent> contentList;
+  final MediaContentList list;
 
-  const MovieGrid({super.key, required this.contentList});
+  const MovieGrid({super.key, required this.list});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,9 +67,9 @@ class MovieGrid extends ConsumerWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 2 / 3,
       ),
-      itemCount: contentList.length,
+      itemCount: list.content.length,
       itemBuilder: (context, index) {
-        final movie = contentList[index];
+        final movie = list.content[index];
         bool isHovered = false;
         return StatefulBuilder(
           builder: (context, setState) {

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:m3u_player/extensions/build_context_extensions.dart';
 import 'package:m3u_player/model/media_content.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -27,10 +28,12 @@ class MovieCard extends StatelessWidget {
               imageUrl: movie.logo,
               fit: BoxFit.cover,
               memCacheWidth: 300,
-              placeholder: (context, url) => SizedBox(
-                width: 24,
-                height: 24,
-                child: Center(child: const ShadProgress()),
+              placeholder: (context, url) => SizedBox.expand(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.secondary,
+                  ),
+                ),
               ),
               fadeInDuration: const Duration(milliseconds: 500),
               errorWidget: (context, url, error) =>
