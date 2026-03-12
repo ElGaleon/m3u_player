@@ -2,6 +2,12 @@
 
 A modern, ultra-performant, and responsive IPTV player written in Flutter. Optimized to parse and handle massive M3U playlists (80,000+ items) without stuttering, offering a premium style User Experience (UX).
 
+> 🚧 Warning
+>
+> This is a personal project and is not intended for production use. It is still under development and may contain bugs.
+
+![Movie View](/assets/images/movie_view.png)
+
 ## Key Features
 - **High Performance Parsing**: Custom reading engine that utilizes Dart's Stream and Isolate (compute) to parse tens of thousands of M3U lines in the background, keeping the UI running at a buttery smooth 60/120fps.
 - **Smart Categorization**: Automatically recognizes and separates content into three main categories:
@@ -11,6 +17,8 @@ A modern, ultra-performant, and responsive IPTV player written in Flutter. Optim
 - **Load Efficiency**: The data are loaded efficiently thanks to pagination and lazy loading.
 - **Reactive Search**: You can easily filter the catalog by searching the title.
 - **IMDb/TMDB Integration**: Enriches raw M3U content by fetching posters, plots, casts, directors and rating from IMDb and TMDB.
+
+![Series Details View](/assets/images/series_details.png)
 
 ## Tech Stack
 - **Framework:** [Flutter](https://flutter.dev/) (Dart 3)
