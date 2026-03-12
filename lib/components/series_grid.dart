@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:m3u_player/components/series_card.dart';
-import 'package:m3u_player/model/series.dart';
+import 'package:m3u_player/views/components/series_details_dialog.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:m3u_player/services/providers/movie_details_provider.dart';
+import 'package:m3u_player/services/providers/media_content_provider.dart';
 
-import '../services/providers/media_content_provider.dart';
+import 'package:m3u_player/model/media_entity.dart';
 
 class SeriesGrid extends ConsumerWidget {
   final List<Series> seriesList;
@@ -24,8 +27,9 @@ class SeriesGrid extends ConsumerWidget {
       ),
       itemCount: seriesList.length,
       itemBuilder: (context, index) {
-        final series = seriesList[index];
+        var series = seriesList[index];
         bool isHovered = false;
+        final imdbMetadataAsync = ref.watch(imdbMetadataProvider(series.title));
         return StatefulBuilder(
           builder: (context, setState) {
             return MouseRegion(
@@ -34,14 +38,34 @@ class SeriesGrid extends ConsumerWidget {
               child: AnimatedScale(
                 scale: (isHovered) ? 1.05 : 1,
                 duration: const Duration(milliseconds: 200),
-                child: InkWell(
-                  onTap: () {
-                    ref.read(selectedSeriesProvider.notifier).state = series;
-                    ref.read(currentSeasonProvider.notifier).state =
-                        series.seasons.keys.first;
-                    context.push('/series-details');
+                child: imdbMetadataAsync.when(
+                  data: (data) {
+                    series = series.copyWith(logo: data?.poster);
+                    return SeriesCard(
+                      series: series,
+                      onTap: () {
+                        ref.read(selectedSeriesProvider.notifier).state =
+                            series;
+                        ref.read(currentSeasonProvider.notifier).state =
+                            series.seasons.keys.first;
+                        showShadDialog(
+                          context: context,
+                          builder: (context) {
+                            return SeriesDetailsDialog(metadata: data);
+                          },
+                        );
+                      },
+                    );
                   },
-                  child: SeriesCard(series: series),
+                  error: (error, stackTrace) {
+                    return SizedBox.shrink();
+                  },
+                  loading: () {
+                    return Skeletonizer(
+                      enabled: true,
+                      child: SeriesCard(series: series),
+                    );
+                  },
                 ),
               ),
             );

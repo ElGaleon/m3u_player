@@ -1,3 +1,5 @@
+import 'package:m3u_player/api/base.dart';
+
 class ImdbMetadata {
   final String? title;
   final String? poster;
@@ -6,13 +8,12 @@ class ImdbMetadata {
 
   ImdbMetadata({this.title, this.poster, this.imdbId, this.year});
 
-  factory ImdbMetadata.fromJson(Map<String, dynamic> json) {
-    final desc = (json['description'] as List).first;
+  factory ImdbMetadata.fromJson(Json json) {
     return ImdbMetadata(
-      title: desc['#TITLE'],
-      poster: desc['#IMG_POSTER'],
-      imdbId: desc['#IMDB_ID'],
-      year: desc['#YEAR'],
+      title: json['#TITLE'],
+      poster: json['#IMG_POSTER'],
+      imdbId: json['#IMDB_ID'],
+      year: json['#YEAR'],
     );
   }
 }

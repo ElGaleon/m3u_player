@@ -1,11 +1,12 @@
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:m3u_player/model/media_content.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m3u_player/model/media_entity.dart';
 
-class SelectedMediaContentNotifier extends StateNotifier<MediaContent?> {
-  SelectedMediaContentNotifier(super.state);
+class SelectedMediaEntityNotifier extends Notifier<MediaEntity?> {
+  @override
+  MediaEntity? build() => null;
 
-  Future<void> update(MediaContent channel) async {
-    state = channel;
+  Future<void> update(MediaEntity media) async {
+    state = media;
   }
 
   Future<void> clearFilter() async {
@@ -13,7 +14,7 @@ class SelectedMediaContentNotifier extends StateNotifier<MediaContent?> {
   }
 }
 
-final selectedMediaContentProvider =
-    StateNotifierProvider<SelectedMediaContentNotifier, MediaContent?>(
-      (ref) => SelectedMediaContentNotifier(null),
+final selectedMediaEntityProvider =
+    NotifierProvider<SelectedMediaEntityNotifier, MediaEntity?>(
+      () => SelectedMediaEntityNotifier(),
     );

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:m3u_player/model/media_content.dart';
+import 'package:m3u_player/model/media_entity.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class LiveChannelCard extends StatelessWidget {
-  final MediaContent channel;
+  final LiveChannel channel;
   final String currentProgram;
-  final double progress; // valore da 0.0 a 1.0
+  final double progress;
 
   const LiveChannelCard({
     super.key,
@@ -46,7 +46,7 @@ class LiveChannelCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  channel.name,
+                  channel.title,
                   style: theme.textTheme.muted.copyWith(fontSize: 10),
                 ),
                 Text(

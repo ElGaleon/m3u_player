@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:m3u_player/components/live_channel_card.dart';
 import 'package:m3u_player/components/sidebar.dart';
+import 'package:m3u_player/model/media_entity.dart';
 import 'package:m3u_player/services/providers/selected_media_content_provider.dart';
 
 import '../services/providers/media_content_provider.dart';
@@ -24,7 +25,7 @@ class LiveView extends ConsumerWidget {
           Flexible(
             flex: 3,
             child: asyncChannels.when(
-              data: (data) => data.content.isEmpty
+              data: (data) => data.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -47,13 +48,13 @@ class LiveView extends ConsumerWidget {
                                 mainAxisSpacing: 8,
                                 childAspectRatio: 16 / 9,
                               ),
-                          itemCount: data.content.length,
+                          itemCount: data.length,
                           itemBuilder: (context, index) {
-                            final item = data.content[index];
+                            final item = data[index] as LiveChannel;
                             return InkWell(
                               onTap: () {
                                 ref
-                                    .read(selectedMediaContentProvider.notifier)
+                                    .read(selectedMediaEntityProvider.notifier)
                                     .update(item);
                                 context.push('/player', extra: item);
                               },

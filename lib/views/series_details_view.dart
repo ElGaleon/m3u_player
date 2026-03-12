@@ -23,7 +23,7 @@ class SeriesDetailScreen extends ConsumerWidget {
     final episodes = series.seasons[selectedSeason] ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: Text(series.cleanTitle)),
+      appBar: AppBar(title: Text(series.title)),
       body: Column(
         children: [
           Padding(
@@ -59,24 +59,21 @@ class SeriesDetailScreen extends ConsumerWidget {
 
           const Divider(),
 
-          // Lista Episodi
           Expanded(
             child: ListView.builder(
               itemCount: episodes.length,
               itemBuilder: (context, index) {
-                final ep = episodes[index];
+                final episode = episodes[index];
 
                 return ListTile(
                   leading: const Icon(Icons.play_arrow_rounded),
-                  title: Text(
-                    ep.name.split(RegExp(r'S\d+ E\d+')).last.trim().isEmpty
-                        ? "Episodio ${index + 1}"
-                        : ep.name,
-                  ),
+                  title: Text('${episode.title} ${episode.episodeNumber}'),
                   subtitle: Text("Premi per avviare la riproduzione"),
                   onTap: () {
-                    ref.read(selectedMediaContentProvider.notifier).update(ep);
-                    context.push('/player', extra: ep);
+                    ref
+                        .read(selectedMediaEntityProvider.notifier)
+                        .update(episode);
+                    context.push('/player', extra: episode);
                   },
                 );
               },

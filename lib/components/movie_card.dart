@@ -1,16 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:m3u_player/extensions/build_context_extensions.dart';
-import 'package:m3u_player/model/media_content.dart';
+import 'package:m3u_player/model/media_entity.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../model/movie_content.dart';
-
 class MovieCard extends StatelessWidget {
-  final MediaContent movie;
+  final Movie movie;
+  final String? urlPoster;
   final void Function()? onTap;
 
-  const MovieCard({super.key, required this.movie, required this.onTap});
+  const MovieCard({
+    super.key,
+    required this.movie,
+    required this.onTap,
+    this.urlPoster,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +32,7 @@ class MovieCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: 2 / 3,
               child: CachedNetworkImage(
-                imageUrl: movie.logo,
+                imageUrl: urlPoster ?? movie.logo,
                 fit: BoxFit.cover,
                 memCacheWidth: 300,
                 placeholder: (context, url) => SizedBox.expand(
@@ -67,7 +71,7 @@ class MovieCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    movie.cleanTitle,
+                    movie.title,
                     style: ShadTheme.of(context).textTheme.h4.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

@@ -1,32 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:m3u_player/model/media_entity.dart';
 import 'package:m3u_player/services/providers/media_content_provider.dart';
 import 'package:riverpod/riverpod.dart';
 
-import 'package:m3u_player/model/media_content.dart';
-
-class PaginatedMediaNotifier extends Notifier<MediaContentList> {
+class PaginatedMediaNotifier extends Notifier<List<MediaEntity>> {
   static const _contentLength = 40;
 
   @override
-  MediaContentList build() {
-    final allFiltered = ref.watch(filteredMediaProvider).value?.content ?? [];
-    return MediaContentList(content: allFiltered.take(_contentLength).toList());
+  List<MediaEntity> build() {
+    final allFiltered = ref.watch(filteredMediaProvider).value ?? [];
+    return allFiltered.take(_contentLength).toList();
   }
 
   void loadMore() {
-    final allFiltered = ref.watch(filteredMediaProvider).value?.content ?? [];
-    final currentList = state.content;
+    final allFiltered = ref.watch(filteredMediaProvider).value ?? [];
+    final currentList = state;
 
     if (currentList.length < allFiltered.length) {
       final nextItems = allFiltered
           .skip(currentList.length)
           .take(_contentLength);
-      state = MediaContentList(content: [...currentList, ...nextItems]);
+      state = [...currentList, ...nextItems];
     }
   }
 }
 
 final paginatedMediaProvider =
-    NotifierProvider.autoDispose<PaginatedMediaNotifier, MediaContentList>(
+    NotifierProvider.autoDispose<PaginatedMediaNotifier, List<MediaEntity>>(
       () => PaginatedMediaNotifier(),
     );

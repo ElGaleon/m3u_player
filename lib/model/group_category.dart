@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:m3u_player/model/media_content_type.dart';
 
 class GroupedCategoryMap {
   final Map<GroupCategory, List<String>> value;
@@ -84,68 +85,89 @@ enum GroupCategory implements Comparable<GroupCategory> {
 }
 
 class GroupClassifier {
-  static GroupCategory classify(String name) {
+  static GroupCategory classify(String name, MediaContentType type) {
     final lower = name.toLowerCase();
 
-    if (lower.startsWith('xxx')) {
-      return GroupCategory.adult;
+    if (type == MediaContentType.movie) {
+      if (lower.startsWith('xxx')) {
+        return GroupCategory.adult;
+      }
+
+      const platformKeywords = {'disney+', 'netflix'};
+      if (platformKeywords.any((key) => lower.contains(key))) {
+        return GroupCategory.platform;
+      }
+
+      if (lower.contains('anno') ||
+          lower.contains('anni') ||
+          RegExp(r'^\d{4}').hasMatch(lower)) {
+        return GroupCategory.years;
+      }
+
+      const genres = {
+        'avventura',
+        'commedia',
+        'crime',
+        'documentario',
+        'dramma',
+        'famiglia',
+        'fantascienza',
+        'fantasy',
+        'fiabe',
+        'fitness',
+        'guerra',
+        'mistero',
+        'musica',
+        'natale',
+        'romance',
+        'sport',
+        'storia',
+        'teatrale',
+        'televisione',
+        'thriller',
+        'western',
+        'horror',
+        'azione',
+      };
+      if (genres.any((keyword) => lower.contains(keyword))) {
+        return GroupCategory.genres;
+      }
+
+      if (lower.startsWith('regia di')) {
+        return GroupCategory.director;
+      }
+
+      const discoverKeywords = {
+        'film più',
+        'oggi al cinema',
+        'recenti',
+        '4k',
+        'visti ultima',
+      };
+      if (discoverKeywords.any((key) => lower.contains(key))) {
+        return GroupCategory.discover;
+      }
+
+      return GroupCategory.actor;
     }
 
-    const platformKeywords = {'disney+', 'netflix'};
-    if (platformKeywords.any((key) => lower.contains(key))) {
-      return GroupCategory.platform;
+    if (type == MediaContentType.live) {
+      if (lower.contains('sport') ||
+          lower.contains('calcio') ||
+          lower.contains('dazn')) {
+        return GroupCategory.discover;
+      }
+      if (lower.contains('notizie') ||
+          lower.contains('news') ||
+          lower.contains('tg')) {
+        return GroupCategory.discover;
+      }
     }
-
-    if (lower.contains('anno') ||
-        lower.contains('anni') ||
-        RegExp(r'^\d{4}').hasMatch(lower)) {
-      return GroupCategory.years;
-    }
-
-    const genres = {
-      'avventura',
-      'commedia',
-      'crime',
-      'documentario',
-      'dramma',
-      'famiglia',
-      'fantascienza',
-      'fantasy',
-      'fiabe',
-      'fitness',
-      'guerra',
-      'mistero',
-      'musica',
-      'natale',
-      'romance',
-      'sport',
-      'storia',
-      'teatrale',
-      'televisione',
-      'thriller',
-      'western',
-      'horror',
-      'azione',
-    };
-    if (genres.any((keyword) => lower.contains(keyword))) {
-      return GroupCategory.genres;
-    }
-
-    if (lower.startsWith('regia di')) {
-      return GroupCategory.director;
-    }
-
-    const discoverKeywords = {
-      'film più',
-      'oggi al cinema',
-      'recenti',
-      '4k',
-      'visti ultima',
-    };
-    if (discoverKeywords.any((key) => lower.contains(key))) {
+    // Series
+    if (lower.contains('stagioni') || lower.contains('complete')) {
       return GroupCategory.discover;
     }
 
-    return GroupCategory.actor;
+    return GroupCategory.discover;
   }
 }
