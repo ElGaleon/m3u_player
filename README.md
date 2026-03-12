@@ -1,17 +1,58 @@
-# m3u_player
+# M3U/IPTV Player
 
-A new Flutter project.
+A modern, ultra-performant, and responsive IPTV player written in Flutter. Optimized to parse and handle massive M3U playlists (80,000+ items) without stuttering, offering a premium style User Experience (UX).
 
-## Getting Started
+## Key Features
+- **High Performance Parsing**: Custom reading engine that utilizes Dart's Stream and Isolate (compute) to parse tens of thousands of M3U lines in the background, keeping the UI running at a buttery smooth 60/120fps.
+- **Smart Categorization**: Automatically recognizes and separates content into three main categories:
+  - Live Channels
+  - Movies
+  - TV Series
+- **Load Efficiency**: The data are loaded efficiently thanks to pagination and lazy loading.
+- **Reactive Search**: You can easily filter the catalog by searching the title.
+- **IMDb/TMDB Integration**: Enriches raw M3U content by fetching posters, plots, casts, directors and rating from IMDb and TMDB.
+
+## Tech Stack
+- **Framework:** [Flutter](https://flutter.dev/) (Dart 3)
+- **State Management:** [Riverpod](https://riverpod.dev/)
+- **Routing:** [GoRouter](https://pub.dev/packages/go_router)
+- **UI Design System:** [Shadcn UI for Flutter](https://shadcn-ui.dev/)
+- **Loading Animations:** [Skeletonizer](https://pub.dev/packages/skeletonizer)
+- **Video Player:** [Video Player](https://pub.dev/packages/video_player)
+- **Image Caching:** [CachedNetworkImage](https://pub.dev/packages/cached_network_image)
 
 This project is a starting point for a Flutter application.
 
+---
+## Getting Started
+
+### Prerequisites
+- Flutter SDK 3.0+
+- Dart 3.0+
+- A valid `.m3u` file or playlist link to test the app.
+
+### Installation
+1. Clone the repository
+2. Navigate to the project directory
+3. Install dependencies: `flutter pub get`
+4. Run the app: `flutter run`
+
 A few resources to get you started if this is your first Flutter project:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Roadmap
+- [x] Optimized M3U Parser
+- [x] Series TV Aggregator
+- [x] IMDb/TMDB Integration
+- [x] Search Functionality
+- [x] Responsive Design
+- [x] Video Player integration
+- [ ] Select Resolution Quality
+- [ ] Favorites / Continue watching management
+- [ ] EPG (Electronic Program Guide) support
+- [ ] Theming
+- [ ] Picture in Picture
+- [ ] AirPlay
+- [ ] More...
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+Built with ❤️ using Flutter and Riverpod.
