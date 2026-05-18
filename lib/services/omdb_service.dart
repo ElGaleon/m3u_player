@@ -13,11 +13,13 @@ class OmdbService {
   Future<MovieMetadata?> getMovieMetadataListFromIdOrTitle({
     String? id,
     String? title,
+    String? year,
   }) async {
     try {
       final result = await OmdbClient().findOmdbMetadataByIdOrTitle(
         id: id,
         title: title,
+        year: year,
       );
       return result;
     } catch (err) {

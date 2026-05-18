@@ -10,7 +10,7 @@ class OmdbClient {
   factory OmdbClient() => _instance;
 
   static final _apiKey = dotenv.get('OMDB_APY_KEY');
-  static const _baseUrl = 'http://www.omdbapi.com';
+  static const _baseUrl = 'https://www.omdbapi.com';
 
   Future<MovieMetadata> findOmdbMetadataByIdOrTitle({
     String? id,
@@ -19,7 +19,7 @@ class OmdbClient {
   }) async {
     assert(id != null || title != null, 'Id or title have to be not null');
     final url = '$_baseUrl/';
-    final params = {'apiKey': _apiKey, 'plot': 'full'};
+    final params = {'apikey': _apiKey, 'plot': 'full'};
     if (id != null) {
       params['i'] = id;
     }

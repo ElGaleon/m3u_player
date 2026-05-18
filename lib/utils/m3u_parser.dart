@@ -13,11 +13,14 @@ class M3uParser {
   static final _seriesRegex = RegExp(r'S(\d+).*?E(\d+)', caseSensitive: false);
   static final _yearRegex = RegExp(r'\((\d{4})\)');
   static final _resolutionRegex = RegExp(
-    r'(4k|4K|QHD|FHD|HD|SD|FullHD|1080p|720p)$',
+    r'\b(4K|QHD|FHD|HD|SD|FullHD|1080p|720p)\b',
+    caseSensitive: false,
   );
 
   static Future<List<MediaEntity>> parseFromFile(String filePath) async {
     List<MediaEntity> catalog = [];
+    final Map<String, int> liveIndexByKey = {};
+    final Map<String, int> movieIndexByKey = {};
     final Map<String, Series> seriesMap = {};
     final file = File(filePath);
 
@@ -52,6 +55,7 @@ class M3uParser {
           case MediaContentType.live:
             _parseChannel(
               catalog: catalog,
+              indexByKey: liveIndexByKey,
               currentId: currentId,
               currentName: currentName,
               currentGroup: currentGroup,
@@ -61,6 +65,7 @@ class M3uParser {
           case MediaContentType.movie:
             _parseMovie(
               catalog: catalog,
+              indexByKey: movieIndexByKey,
               currentId: currentId,
               currentName: currentName,
               currentGroup: currentGroup,
@@ -99,6 +104,7 @@ class M3uParser {
           logo: series.logo,
           group: series.group,
           seasons: series.seasons,
+          year: series.year,
         ),
       );
     }
@@ -108,6 +114,7 @@ class M3uParser {
 
   static void _parseChannel({
     required List<MediaEntity> catalog,
+    required Map<String, int> indexByKey,
     required String currentId,
     required String currentName,
     required String currentGroup,
@@ -115,24 +122,21 @@ class M3uParser {
     required Uri uri,
   }) {
     final resolutionMatch = _resolutionRegex.firstMatch(currentName);
-    final resolution = resolutionMatch?.group(1) ?? 'SD';
-    final indexFound = catalog.indexWhere(
-      (channel) => channel is LiveChannel && channel.title == currentName,
+    final resolution = _normalizeResolution(resolutionMatch?.group(1));
+    final cleanTitle = _cleanTitle(
+      currentName.replaceAll(_resolutionRegex, ''),
     );
+    final key = _entityKey(cleanTitle, currentGroup);
+    final indexFound = indexByKey[key];
+    final newVariant = PlayableEntityVariant(resolution: resolution, url: uri);
 
-    String cleanTitle = currentName.replaceAll(_resolutionRegex, '').trim();
-
-    if (indexFound != -1) {
+    if (indexFound != null) {
       final channelFound = catalog[indexFound] as LiveChannel;
-
-      final newVariant = PlayableEntityVariant(
-        resolution: resolution,
-        url: uri,
-      );
       catalog[indexFound] = channelFound.copyWith(
-        variants: [...channelFound.variants, newVariant],
+        variants: _appendVariant(channelFound.variants, newVariant),
       );
     } else {
+      indexByKey[key] = catalog.length;
       catalog.add(
         LiveChannel(
           id: currentId,
@@ -147,6 +151,7 @@ class M3uParser {
 
   static void _parseMovie({
     required List<MediaEntity> catalog,
+    required Map<String, int> indexByKey,
     required String currentId,
     required String currentName,
     required String currentGroup,
@@ -155,32 +160,29 @@ class M3uParser {
   }) {
     final yearMatch = _yearRegex.firstMatch(currentName);
     final resolutionMatch = _resolutionRegex.firstMatch(currentName);
-    final resolution = resolutionMatch?.group(1) ?? 'SD';
-    String cleanTitle = currentName
-        .replaceAll(_resolutionRegex, '')
-        .replaceAll(_yearRegex, '')
-        .trim();
-    final indexFound = catalog.indexWhere(
-      (movie) =>
-          (movie is Movie &&
-          movie.title == currentName &&
-          currentId == movie.id),
+    final resolution = _normalizeResolution(resolutionMatch?.group(1));
+    final cleanTitle = _cleanTitle(
+      currentName.replaceAll(_resolutionRegex, '').replaceAll(_yearRegex, ''),
     );
+    final year = yearMatch?.group(1);
+    final key = _entityKey(cleanTitle, currentGroup, year);
+    final indexFound = indexByKey[key];
 
     final newVariant = PlayableEntityVariant(resolution: resolution, url: uri);
 
-    if (indexFound != -1) {
+    if (indexFound != null) {
       final movieFound = catalog[indexFound] as Movie;
       catalog[indexFound] = movieFound.copyWith(
-        variants: [...movieFound.variants, newVariant],
+        variants: _appendVariant(movieFound.variants, newVariant),
       );
     } else {
+      indexByKey[key] = catalog.length;
       catalog.add(
         Movie(
           id: currentId,
           title: cleanTitle,
           logo: currentLogo,
-          year: yearMatch?.group(1),
+          year: year,
           group: currentGroup,
           variants: [newVariant],
         ),
@@ -200,7 +202,7 @@ class M3uParser {
     final seriesMatch = _seriesRegex.firstMatch(currentName);
     final yearMatch = _yearRegex.firstMatch(currentName);
     final resolutionMatch = _resolutionRegex.firstMatch(currentName);
-    final resolution = resolutionMatch?.group(1) ?? 'SD';
+    final resolution = _normalizeResolution(resolutionMatch?.group(1));
     final int seasonNumber = seriesMatch != null
         ? int.parse(seriesMatch.group(1)!)
         : 1;
@@ -210,11 +212,13 @@ class M3uParser {
 
     final newVariant = PlayableEntityVariant(resolution: resolution, url: uri);
 
-    String cleanTitle = currentName
-        .replaceAll(_resolutionRegex, '')
-        .replaceAll(_seriesRegex, '')
-        .replaceAll(_yearRegex, '')
-        .trim();
+    final cleanTitle = _cleanTitle(
+      currentName
+          .replaceAll(_resolutionRegex, '')
+          .replaceAll(_seriesRegex, '')
+          .replaceAll(_yearRegex, ''),
+    );
+    final seriesKey = _entityKey(cleanTitle, currentGroup, yearMatch?.group(1));
 
     // Create the episode
     final episode = Episode(
@@ -229,7 +233,7 @@ class M3uParser {
 
     // Create the series if does not exist
     final insertedSeries = seriesMap.putIfAbsent(
-      cleanTitle,
+      seriesKey,
       () => Series(
         id: currentId,
         title: cleanTitle,
@@ -248,23 +252,77 @@ class M3uParser {
 
     if (existingEpisode != null) {
       // We have to update episode, seasons and series
-      final series = seriesMap[cleanTitle] as Series;
+      final series = seriesMap[seriesKey] as Series;
       final seasonToUpdate = series.seasons[seasonNumber] as List<Episode>;
       final episodeIndex = seasonToUpdate.indexWhere(
-        (episode) => episode.id == currentId,
+        (episode) => episode.episodeNumber == episodeNumber,
       );
-      final updatedEpisode = episode.copyWith(
-        variants: [...episode.variants, newVariant],
+      final updatedEpisode = existingEpisode.copyWith(
+        variants: _appendVariant(existingEpisode.variants, newVariant),
       );
       seasonToUpdate[episodeIndex] = updatedEpisode;
-      seriesMap[cleanTitle]?.seasons.update(
+      seriesMap[seriesKey]?.seasons.update(
         seasonNumber,
         (value) => seasonToUpdate,
       );
     } else {
       // New Season and/or Episode
-      seriesMap[cleanTitle]!.seasons.putIfAbsent(seasonNumber, () => []);
-      seriesMap[cleanTitle]!.seasons[seasonNumber]!.add(episode);
+      seriesMap[seriesKey]!.seasons.putIfAbsent(seasonNumber, () => []);
+      seriesMap[seriesKey]!.seasons[seasonNumber]!.add(episode);
     }
+  }
+
+  static List<PlayableEntityVariant> _appendVariant(
+    List<PlayableEntityVariant> variants,
+    PlayableEntityVariant newVariant,
+  ) {
+    final alreadyExists = variants.any(
+      (variant) =>
+          variant.resolution.toLowerCase() ==
+              newVariant.resolution.toLowerCase() ||
+          variant.url == newVariant.url,
+    );
+    if (alreadyExists) return variants;
+    return [...variants, newVariant]..sort(_compareVariants);
+  }
+
+  static int _compareVariants(
+    PlayableEntityVariant a,
+    PlayableEntityVariant b,
+  ) {
+    return _resolutionWeight(
+      b.resolution,
+    ).compareTo(_resolutionWeight(a.resolution));
+  }
+
+  static int _resolutionWeight(String resolution) {
+    return switch (resolution.toUpperCase()) {
+      '4K' => 4000,
+      'QHD' => 1440,
+      'FULLHD' || 'FHD' || '1080P' => 1080,
+      'HD' || '720P' => 720,
+      'SD' => 480,
+      _ => 0,
+    };
+  }
+
+  static String _normalizeResolution(String? resolution) {
+    return switch (resolution?.toUpperCase()) {
+      null => 'SD',
+      'FULLHD' => 'FHD',
+      final value => value,
+    };
+  }
+
+  static String _cleanTitle(String value) {
+    return value.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  static String _entityKey(String title, String group, [String? year]) {
+    return [
+      title,
+      group,
+      ?year,
+    ].map((part) => part.toLowerCase().trim()).join('|');
   }
 }

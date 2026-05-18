@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:m3u_player/api/interceptors/api_interceptor.dart';
 
 import 'errors.dart';
 
@@ -11,15 +12,23 @@ class BaseClient {
   static const connectTimeoutSeconds = 15;
   static const receiveTimeoutSeconds = 60;
 
-  late final Dio _omdbClient;
+  late final Dio _baseClient;
+  late final Dio _tmdbClient;
 
   BaseClient._() {
-    _omdbClient = Dio(
+    _baseClient = Dio(
       BaseOptions(
         connectTimeout: const Duration(seconds: connectTimeoutSeconds),
         receiveTimeout: const Duration(seconds: receiveTimeoutSeconds),
       ),
     );
+    _tmdbClient = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: connectTimeoutSeconds),
+        receiveTimeout: const Duration(seconds: receiveTimeoutSeconds),
+      ),
+    );
+    _tmdbClient.interceptors.add(TMDbAuthInterceptor());
   }
 
   factory BaseClient() => _instance;
@@ -30,8 +39,9 @@ class BaseClient {
     HeadersType? headers,
     ResponseType? responseType,
     bool Function(int?)? validateStatus,
+    bool tmdbClient = false,
   }) async {
-    final response = await _omdbClient.get(
+    final response = await (tmdbClient ? _tmdbClient : _baseClient).get(
       url,
       queryParameters: params,
       options: Options(

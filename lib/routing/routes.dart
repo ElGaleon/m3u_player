@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:m3u_player/model/media_entity.dart';
+import 'package:m3u_player/model/playback_request.dart';
 import 'package:m3u_player/views/cinema_view.dart';
 import 'package:m3u_player/views/home_page.dart';
 import 'package:m3u_player/views/live_view.dart';
@@ -17,7 +18,14 @@ final router = GoRouter(
     GoRoute(
       path: '/player',
       builder: (context, state) {
-        final media = state.extra as PlayableEntity;
+        final extra = state.extra;
+        if (extra is PlaybackRequest) {
+          return VideoPlayerPage(
+            media: extra.media,
+            initialVariant: extra.variant,
+          );
+        }
+        final media = extra as PlayableEntity;
         return VideoPlayerPage(media: media);
       },
     ),

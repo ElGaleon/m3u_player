@@ -1,16 +1,24 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class ApiInterceptor extends Interceptor {
+class TMDbAuthInterceptor extends Interceptor {
   final bool logOnRequest;
   final bool logOnResponse;
   final bool logOnError;
 
-  ApiInterceptor({
+  TMDbAuthInterceptor({
     this.logOnRequest = true,
     this.logOnResponse = false,
     this.logOnError = true,
   });
 
   @override
-  void onRequest(RequestOptions, RequestInterceptorHandler handler) {}
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = dotenv.get('TMDB_AUTH_TOKEN');
+    options.headers['Authorization'] = 'Bearer $token';
+    handler.next(options);
+  }
 }

@@ -26,7 +26,7 @@ A modern, ultra-performant, and responsive IPTV player written in Flutter. Optim
 - **Routing:** [GoRouter](https://pub.dev/packages/go_router)
 - **UI Design System:** [Shadcn UI for Flutter](https://shadcn-ui.dev/)
 - **Loading Animations:** [Skeletonizer](https://pub.dev/packages/skeletonizer)
-- **Video Player:** [Video Player](https://pub.dev/packages/video_player)
+- **Video Player:** [Media Kit](https://pub.dev/packages/media_kit)
 - **Image Caching:** [CachedNetworkImage](https://pub.dev/packages/cached_network_image)
 
 This project is a starting point for a Flutter application.
@@ -54,10 +54,10 @@ A few resources to get you started if this is your first Flutter project:
 - [x] Search Functionality
 - [x] Responsive Design
 - [x] Video Player integration
-- [ ] Select Resolution Quality
-- [ ] Favorites / Continue watching management
-- [ ] EPG (Electronic Program Guide) support
-- [ ] Theming
+- [x] Select Resolution Quality
+- [x] Favorites / Continue watching management
+- [x] EPG (Electronic Program Guide) support
+- [x] Theming
 - [ ] Picture in Picture
 - [ ] AirPlay
 - [ ] More...

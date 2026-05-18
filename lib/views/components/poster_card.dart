@@ -40,7 +40,7 @@ class PosterCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: 2 / 3,
               child: CachedNetworkImage(
-                imageUrl: media.logo,
+                imageUrl: urlPoster ?? media.logo,
                 fit: BoxFit.cover,
                 memCacheWidth: 300,
                 placeholder: (context, url) => SizedBox.expand(

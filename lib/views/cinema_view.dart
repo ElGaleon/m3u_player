@@ -18,77 +18,86 @@ class CinemaView extends ConsumerWidget {
     final asyncMediaEntityList = ref.watch(filteredMediaProvider);
     final searchTerm = ref.watch(searchMediaContentProvider);
     final searchTermNotifier = ref.watch(searchMediaContentProvider.notifier);
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, value) {
-        ref.invalidate(selectedMediaTypeProvider);
-        ref.invalidate(selectedMediaEntityProvider);
-        ref.invalidate(fileFilterProvider);
-        ref.invalidate(filteredMediaProvider);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          toolbarHeight: 96,
-          title: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: SearchBar(
-              controller: TextEditingController(
-                text: searchTerm,
-              )..selection = TextSelection.collapsed(offset: searchTerm.length),
-              leading: Icon(Icons.search),
-              trailing: [
-                if (searchTerm.isNotEmpty)
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      (searchTerm.isNotEmpty)
-                          ? searchTermNotifier.state = ''
-                          : null;
-                    },
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 840;
+        final content = asyncMediaEntityList.when(
+          data: (data) => data.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'No content found with these parameters',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
-              ],
-              shape: WidgetStateProperty.all(
-                RoundedRectangleBorder(
-                  side: BorderSide(color: context.colorScheme.secondary),
-                  borderRadius: BorderRadiusGeometry.circular(16),
+                )
+              : CinemaGrid(list: data),
+          error: (error, stackTrace) => Center(child: Text(error.toString())),
+          loading: () =>
+              Skeletonizer(enabled: true, child: CinemaGrid(list: fakeCatalog)),
+        );
+
+        return PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (didPop, value) {
+            ref.invalidate(selectedMediaTypeProvider);
+            ref.invalidate(selectedMediaEntityProvider);
+            ref.invalidate(fileFilterProvider);
+            ref.invalidate(filteredMediaProvider);
+          },
+          child: Scaffold(
+            drawer: isCompact
+                ? const Drawer(child: SafeArea(child: Sidebar()))
+                : null,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              toolbarHeight: 96,
+              title: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: SearchBar(
+                  controller: TextEditingController(text: searchTerm)
+                    ..selection = TextSelection.collapsed(
+                      offset: searchTerm.length,
+                    ),
+                  leading: const Icon(Icons.search),
+                  trailing: [
+                    if (searchTerm.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          if (searchTerm.isNotEmpty) {
+                            searchTermNotifier.state = '';
+                          }
+                        },
+                      ),
+                  ],
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      side: BorderSide(color: context.colorScheme.secondary),
+                      borderRadius: BorderRadiusGeometry.circular(16),
+                    ),
+                  ),
+                  backgroundColor: WidgetStateProperty.all(Colors.transparent),
+                  onChanged: (value) {
+                    searchTermNotifier.state = value;
+                  },
                 ),
               ),
-              backgroundColor: WidgetStateProperty.all(Colors.transparent),
-              onChanged: (value) {
-                searchTermNotifier.state = value;
-              },
             ),
+            body: isCompact
+                ? content
+                : Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      const SizedBox(width: 300, child: Sidebar()),
+                      Expanded(flex: 4, child: content),
+                    ],
+                  ),
           ),
-        ),
-        body: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            SizedBox(width: 300, child: Sidebar()),
-            Expanded(
-              flex: 4,
-              child: Center(
-                child: asyncMediaEntityList.when(
-                  data: (data) => data.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            'No $selectedMediaTypeProvider found with these parameters',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                        )
-                      : CinemaGrid(list: data),
-                  error: (error, stackTrace) => Text(error.toString()),
-                  loading: () => Skeletonizer(
-                    enabled: true,
-                    child: CinemaGrid(list: fakeCatalog),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

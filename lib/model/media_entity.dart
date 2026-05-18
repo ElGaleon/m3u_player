@@ -218,7 +218,7 @@ class Series extends MediaEntity {
 
     final season = seasons[seasonNumber];
     return season
-        ?.where((episode) => (episode.seasonNumber == episodeNumber))
+        ?.where((episode) => (episode.episodeNumber == episodeNumber))
         .firstOrNull;
   }
 

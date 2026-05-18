@@ -16,9 +16,35 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contentTiles = MediaContentType.values
+        .where((t) => t != MediaContentType.unknown)
+        .map((type) {
+          final asyncMediaEntityByType = ref.watch(
+            asyncMediaEntityByTypeProvider(type),
+          );
+          return asyncMediaEntityByType.when(
+            data: (data) {
+              return MediaContentCard(type: type, length: data.length);
+            },
+            error: (error, stackTrace) {
+              return ShadToast.destructive(
+                title: const Text('ERROR'),
+                description: Text(error.toString()),
+              );
+            },
+            loading: () {
+              return Skeletonizer(
+                enabled: true,
+                child: MediaContentCard(type: type),
+              );
+            },
+          );
+        })
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
-        actionsPadding: EdgeInsets.symmetric(horizontal: 16),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16),
         backgroundColor: Colors.transparent,
         title: Text(title),
         actions: [
@@ -28,51 +54,43 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                spacing: 16,
-                children: MediaContentType.values
-                    .where((t) => t != MediaContentType.unknown)
-                    .map((type) {
-                      final asyncMediaEntityByType = ref.watch(
-                        asyncMediaEntityByTypeProvider(type),
-                      );
-                      return asyncMediaEntityByType.when(
-                        data: (data) {
-                          return MediaContentCard(
-                            type: type,
-                            length: data.length,
-                          );
-                        },
-                        error: (error, stackTrace) {
-                          return ShadToast.destructive(
-                            title: Text('ERROR'),
-                            description: Text(error.toString()),
-                          );
-                        },
-                        loading: () {
-                          return Skeletonizer(
-                            enabled: true,
-                            child: MediaContentCard(type: type),
-                          );
-                        },
-                      );
-                    })
-                    .toList(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 760;
+          if (isCompact) {
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              children: [
+                ...contentTiles.map(
+                  (tile) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: tile,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Center(child: Text('Made with ❤️ by Christian Galeone')),
+              ],
+            );
+          }
+
+          return Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 16,
+                    children: contentTiles,
+                  ),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('Made with ❤️ by Christian Galeone'),
-            ),
-          ],
-        ),
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Made with ❤️ by Christian Galeone'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

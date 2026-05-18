@@ -21,6 +21,11 @@ class _MediaContentCardState extends ConsumerState<MediaContentCard> {
 
   @override
   Widget build(BuildContext context) {
+    final size = context.mediaQuery.size;
+    final isCompact = size.width < 760;
+    final cardWidth = isCompact ? double.infinity : size.width * 0.25;
+    final cardHeight = isCompact ? 172.0 : size.height * 0.35;
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => isHovered = true),
@@ -30,48 +35,47 @@ class _MediaContentCardState extends ConsumerState<MediaContentCard> {
         curve: Curves.easeOutBack,
         scale: (isHovered) ? 1.05 : 1,
         child: InkWell(
-          child: ShadButton.outline(
-            padding: EdgeInsets.all(24),
-            decoration: ShadDecoration(
-              border: ShadBorder.all(
-                color: (isHovered)
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            ref.read(selectedMediaTypeProvider.notifier).update(widget.type);
+            context.push('/${widget.type.name}');
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: cardWidth,
+            height: cardHeight,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: context.colorScheme.card,
+              border: Border.all(
+                color: isHovered
                     ? widget.type.color.withValues(alpha: 0.5)
-                    : Colors.white12,
+                    : context.colorScheme.border,
                 width: 2,
               ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                if (isHovered)
+                  BoxShadow(
+                    color: widget.type.color.withValues(alpha: 0.25),
+                    blurRadius: 30,
+                    spreadRadius: 2,
+                  ),
+              ],
             ),
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            width: context.mediaQuery.size.width * 0.25,
-            hoverBackgroundColor: context.colorScheme.primaryForeground,
-            onHoverChange: (value) => setState(() {
-              isHovered = value;
-            }),
-            onTapUp: (_) {
-              ref.read(selectedMediaTypeProvider.notifier).update(widget.type);
-              context.push('/${widget.type.name}');
-            },
-
-            height: context.mediaQuery.size.height * 0.35,
-            shadows: [
-              if (isHovered)
-                BoxShadow(
-                  color: widget.type.color.withValues(alpha: 0.25),
-                  blurRadius: 30,
-                  spreadRadius: 2,
-                ),
-            ],
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
                 Text(
-                  widget.type.name.toUpperCase(),
-                  style: context.textTheme.h2.copyWith(
-                    color: widget.type.color,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  widget.type.label,
+                  style:
+                      (isCompact ? context.textTheme.h3 : context.textTheme.h2)
+                          .copyWith(
+                            color: widget.type.color,
+                            fontWeight: FontWeight.w800,
+                          ),
                 ),
-                SizedBox(
+                Expanded(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -85,30 +89,25 @@ class _MediaContentCardState extends ConsumerState<MediaContentCard> {
                       ],
                     ),
                     child: FittedBox(
-                      child: Icon(
-                        widget.type.icon,
-                        color: widget.type.color,
-                        size: 200,
-                      ),
+                      child: Icon(widget.type.icon, color: widget.type.color),
                     ),
                   ),
                 ),
                 if (widget.length != null)
-                  ShadBadge(
-                    backgroundColor: widget.type.color,
-                    hoverBackgroundColor: widget.type.color,
-                    child: Text(
-                      '${widget.length} ${widget.type.label}',
-                      style: context.textTheme.muted,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: ShadBadge(
+                      backgroundColor: widget.type.color,
+                      hoverBackgroundColor: widget.type.color,
+                      child: Text(
+                        '${widget.length} ${widget.type.label}',
+                        style: context.textTheme.muted,
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-          onTap: () {
-            ref.read(selectedMediaTypeProvider.notifier).update(widget.type);
-            context.push('/${widget.type.name}');
-          },
         ),
       ),
     );

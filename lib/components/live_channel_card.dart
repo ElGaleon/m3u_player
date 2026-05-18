@@ -4,7 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 class LiveChannelCard extends StatelessWidget {
   final LiveChannel channel;
-  final String currentProgram;
+  final String? currentProgram;
   final double progress;
 
   const LiveChannelCard({
@@ -50,7 +50,7 @@ class LiveChannelCard extends StatelessWidget {
                   style: theme.textTheme.muted.copyWith(fontSize: 10),
                 ),
                 Text(
-                  currentProgram,
+                  currentProgram ?? 'No EPG data',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.small.copyWith(

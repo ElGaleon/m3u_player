@@ -1,16 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
 });
 
-class PathNotifier extends StateNotifier<String?> {
-  final SharedPreferences _preferences;
+class PathNotifier extends Notifier<String?> {
+  late final SharedPreferences _preferences;
   static const _key = "m3u_path";
 
-  PathNotifier(this._preferences) : super(_preferences.getString(_key));
+  @override
+  String? build() {
+    _preferences = ref.watch(sharedPreferencesProvider);
+    return _preferences.getString(_key);
+  }
 
   Future<void> updatePath(String path) async {
     state = path;
@@ -23,7 +26,6 @@ class PathNotifier extends StateNotifier<String?> {
   }
 }
 
-final pathProvider = StateNotifierProvider<PathNotifier, String?>((ref) {
-  final preferences = ref.watch(sharedPreferencesProvider);
-  return PathNotifier(preferences);
+final pathProvider = NotifierProvider<PathNotifier, String?>(() {
+  return PathNotifier();
 });
